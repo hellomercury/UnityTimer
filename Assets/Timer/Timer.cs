@@ -1,136 +1,214 @@
 ﻿using System;
 using UnityEngine;
-using Object = UnityEngine.Object;
+using UnityEngine.UI;
 
-public class Timer
+namespace Framework.Tools
 {
-    private float duration;
-    private float timeRemain;
-    private bool isLooped;
-    public bool isCompleted;
-    public bool isPaused;
-    public bool isCancelled;
-    public bool isDone;
-
-    public Action onFinishedAction;
-    public Action<float> onUpdate;
-
-    private TimerManager timerManager;
-    private TimerManager timerMgr
+    public abstract class Timer
     {
-        get
+        protected float DurationFloat;
+        protected float RemainingTimeFloat;
+
+        protected int DurationInt;
+        protected int RemainingTimeInt;
+
+        protected bool HasMonoOwner;
+        protected MonoBehaviour MonoOwner;
+
+        protected Action OnCompletedAction;
+
+        protected bool IsPaused;
+
+        protected bool IsCompleted;
+        protected bool IsCancelled;
+        protected bool IsAutoKilled;
+
+        public bool IsDone
         {
-            if (null == timerManager)
+            get { return IsCompleted || IsCancelled || IsAutoKilled; }
+        }
+
+        protected readonly float IntervalsTimeFloat;
+        protected readonly int IntervalsTimeInt;
+
+        protected Timer(float InDurationFloat, float InIntervalsTimeFloat,
+            Action InOnCompletedAction,
+            MonoBehaviour InMonoOwner)
+        {
+            DurationFloat = InDurationFloat;
+            RemainingTimeFloat = InDurationFloat;
+
+            IntervalsTimeFloat = InIntervalsTimeFloat;
+
+            MonoOwner = InMonoOwner;
+            HasMonoOwner = MonoOwner != null;
+
+            OnCompletedAction = InOnCompletedAction;
+        }
+
+        protected Timer(int InDurationInt, int InIntervalsTimeInt,
+            Action InOnCompletedAction,
+            MonoBehaviour InMonoOwner)
+        {
+            DurationInt = InDurationInt;
+            RemainingTimeInt = DurationInt;
+
+            IntervalsTimeInt = InIntervalsTimeInt;
+
+            MonoOwner = InMonoOwner;
+            HasMonoOwner = MonoOwner != null;
+
+            OnCompletedAction = InOnCompletedAction;
+        }
+
+        public void Run()
+        {
+            TimerManager.GetSingleton().AddTimer(this);
+        }
+
+        public void Pause()
+        {
+            IsPaused = true;
+        }
+
+        public void Resume()
+        {
+            IsPaused = false;
+        }
+
+        public void Cancel()
+        {
+            IsCancelled = true;
+        }
+
+        public void AddTime(int InAddTimeInt)
+        {
+            if (IsDone)
             {
-                timerManager = Object.FindObjectOfType<TimerManager>();
-                if(null == timerManager) timerManager = new GameObject("TimeManager").AddComponent<TimerManager>();
+                Debug.LogWarning("Timer already completed or cancelled.");
+                return;
             }
 
-            return timerManager;
-        }
-    }
-    
-    private Timer(float InDuration, Action InOnFinishedAction)
-    {
-        duration = InDuration;
-        timeRemain = InDuration;
-        isLooped = false;
-        isCompleted = false;
-        isPaused = false;
-        isCancelled = false;
-        isDone = false;
-
-        onFinishedAction = InOnFinishedAction;
-    }
-
-    private Timer(float InDuration, Action<float> InOnUpdate, Action InOnFinishedAction)
-    {
-        duration = InDuration;
-        timeRemain = InDuration;
-        isLooped = false;
-        isCompleted = false;
-        isPaused = false;
-        isCancelled = false;
-        isDone = false;
-
-        onUpdate = InOnUpdate;
-        onFinishedAction = InOnFinishedAction;
-    }
-
-    public void Run()
-    {
-        timerMgr.AddTimer(this);
-    }
-
-    public void Pause()
-    {
-        isPaused = true;
-    }
-
-    public void Resume()
-    {
-        isPaused = false;
-    }
-
-    public void AddTimer(float InTime)
-    {
-        if(isDone) Debug.LogWarning("Timer already done.");
-        else
-        {
-            duration += InTime;
-            timeRemain += InTime;
-        }
-    }
-
-    public void SubTimer(float InTime)
-    {
-        if (isDone) Debug.LogWarning("Timer already done.");
-        else
-        {
-            duration -= InTime;
-            timeRemain -= InTime;
-        }
-    }
-
-    public void Cancel(bool InIsCompleteActionInvoke = false)
-    {
-        isCancelled = true;
-        if (InIsCompleteActionInvoke)
-        {
-            onFinishedAction.Invoke();
-        }
-    }
-
-    public static Timer Register(float InDuration,
-        Action<float> InOnUpdate,
-        Action InOnComplete)
-    {
-        Timer timer = new Timer(InDuration, InOnUpdate, InOnComplete);
-        timer.Run();
-        return timer;
-    }
-    
-    public void Update()
-    {
-        if(null != onUpdate) onUpdate.Invoke(TimerConfig.DELTA_TIME);
-
-        timeRemain -= TimerConfig.DELTA_TIME;
-
-        Debug.LogError(timeRemain);
-
-        if (timeRemain <= 0)
-        {
-            if (isLooped)
+            if (DurationInt == 0)
             {
-                timeRemain = duration;
-                isCompleted = false;
+                DurationFloat += InAddTimeInt;
+                RemainingTimeFloat += InAddTimeInt;
             }
             else
             {
-                isCompleted = true;
+                DurationInt += InAddTimeInt;
+                RemainingTimeInt += InAddTimeInt;
             }
 
-            if (onFinishedAction != null) onFinishedAction.Invoke();
+            UpdateTime();
+        }
+
+        public void AddTime(float InAddTimeFloat)
+        {
+            if (IsDone)
+            {
+                Debug.LogWarning("Timer already completed or cancelled.");
+                return;
+            }
+
+            if (DurationInt == 0)
+            {
+                DurationFloat += InAddTimeFloat;
+                RemainingTimeFloat += InAddTimeFloat;
+            }
+            else
+            {
+                int timeInt = (int)InAddTimeFloat;
+                DurationInt += timeInt;
+                RemainingTimeInt += timeInt;
+            }
+
+            UpdateTime();
+        }
+
+        public void SubTimer(int InTimeInt)
+        {
+            if (IsDone)
+            {
+                Debug.LogWarning("Timer already completed or cancelled.");
+                return;
+            }
+
+            if (DurationInt == 0)
+            {
+                RemainingTimeFloat = RemainingTimeFloat > InTimeInt ? RemainingTimeFloat - InTimeInt : 0;
+                DurationFloat -= InTimeInt;
+            }
+            else
+            {
+                RemainingTimeInt = RemainingTimeInt > InTimeInt ? RemainingTimeInt - InTimeInt : 0;
+                DurationInt -= InTimeInt;
+            }
+
+            UpdateTime();
+        }
+
+        public void SubTimer(float InTimeFloat)
+        {
+            if (IsDone)
+            {
+                Debug.LogWarning("Timer already completed or cancelled.");
+                return;
+            }
+
+            if (DurationInt == 0)
+            {
+                RemainingTimeFloat = RemainingTimeFloat > InTimeFloat ? RemainingTimeFloat - InTimeFloat : 0;
+                DurationFloat = DurationFloat > InTimeFloat ? DurationFloat - InTimeFloat : 0;
+            }
+            else
+            {
+                int timeInt = (int)InTimeFloat;
+                RemainingTimeInt = RemainingTimeInt > timeInt ? RemainingTimeInt - timeInt : 0;
+                DurationInt = DurationInt > timeInt ? DurationInt - timeInt : 0;
+            }
+
+            UpdateTime();
+        }
+
+        public abstract void Update();
+
+        protected abstract void UpdateTime();
+
+        public static TimerTrigger RegisterTimerTrigger(float InDurationFloat,
+            Action InOnCompletedAction,
+            float InIntervalsTime = .1f,
+            MonoBehaviour InMonoOwner = null)
+        {
+            return new TimerTrigger(InDurationFloat, InOnCompletedAction, InMonoOwner);
+        }
+
+        public static Countdown RegisterCountdown(int InDurationInt,
+            TimeType InTimeType,
+            Text InTimeText,
+            Action InOnCompletedAction,
+            int InIntervalsTimeInt = 1,
+            MonoBehaviour InMonoOwner = null)
+        {
+            return new Countdown(InDurationInt,
+                InTimeType, InTimeText,
+                InOnCompletedAction,
+                InIntervalsTimeInt,
+                InMonoOwner);
+        }
+
+        public static Countdown RegisterCountdown(int InDurationInt,
+            TimeType InTimeType,
+            Action<int, string> InOnUpdate,
+            Action InOnCompletedAction,
+            int InIntervalsTimeInt = 1,
+            MonoBehaviour InMonoOwner = null)
+        {
+            return new Countdown(InDurationInt,
+                InTimeType, InOnUpdate,
+                InOnCompletedAction,
+                InIntervalsTimeInt,
+                InMonoOwner);
         }
     }
 }

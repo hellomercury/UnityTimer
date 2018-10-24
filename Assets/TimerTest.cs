@@ -1,13 +1,48 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
-public class TimerTest : MonoBehaviour
+namespace Framework.Tools
 {
-
-    // Use this for initialization
-    void Start()
+    public sealed class TimerTest : MonoBehaviour
     {
-        Timer.Register(30,
-            InDeltaTime => Debug.LogError(InDeltaTime),
-            () => Debug.LogError("Timer completed."));
+        private Text text;
+
+        private Countdown countdown;
+
+        // Use this for initialization
+        void Start()
+        {
+            text = transform.Find("Countdown").GetComponent<Text>();
+            countdown = Timer.RegisterCountdown(66, TimeType.hhmmss, text,
+                () => { Debug.LogError("Countdown completed."); },
+                1,
+                this);
+            countdown.Run();
+        }
+
+        public void Pause()
+        {
+            countdown.Pause();
+        }
+
+        public void Resume()
+        {
+            countdown.Resume();
+        }
+
+        public void Cancel()
+        {
+            countdown.Cancel();
+        }
+
+        public void AddTime()
+        {
+            countdown.AddTime(6.5f);
+        }
+
+        public void SubTime()
+        {
+            countdown.SubTimer(6.1f);
+        }
     }
 }

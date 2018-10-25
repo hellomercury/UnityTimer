@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace Framework.Tools
+namespace Framework.Timer
 {
     public sealed class TimerTest : MonoBehaviour
     {
@@ -13,7 +13,7 @@ namespace Framework.Tools
         void Start()
         {
             text = transform.Find("Countdown").GetComponent<Text>();
-            countdown = Timer.RegisterCountdown(66, TimeType.hhmmss, text,
+            countdown = TimerBase.RegisterCountdown(66, TimeType.hhmmss, text,
                 () => { Debug.LogError("Countdown completed."); },
                 1,
                 this);

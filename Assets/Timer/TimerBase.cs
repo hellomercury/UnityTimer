@@ -2,9 +2,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Framework.Tools
+namespace Framework.Timer
 {
-    public abstract class Timer
+    public abstract class TimerBase
     {
         protected float DurationFloat;
         protected float RemainingTimeFloat;
@@ -31,7 +31,7 @@ namespace Framework.Tools
         protected readonly float IntervalsTimeFloat;
         protected readonly int IntervalsTimeInt;
 
-        protected Timer(float InDurationFloat, float InIntervalsTimeFloat,
+        protected TimerBase(float InDurationFloat, float InIntervalsTimeFloat,
             Action InOnCompletedAction,
             MonoBehaviour InMonoOwner)
         {
@@ -46,7 +46,7 @@ namespace Framework.Tools
             OnCompletedAction = InOnCompletedAction;
         }
 
-        protected Timer(int InDurationInt, int InIntervalsTimeInt,
+        protected TimerBase(int InDurationInt, int InIntervalsTimeInt,
             Action InOnCompletedAction,
             MonoBehaviour InMonoOwner)
         {
@@ -85,7 +85,7 @@ namespace Framework.Tools
         {
             if (IsDone)
             {
-                Debug.LogWarning("Timer already completed or cancelled.");
+                Debug.LogWarning("TimerBase already completed or cancelled.");
                 return;
             }
 
@@ -107,7 +107,7 @@ namespace Framework.Tools
         {
             if (IsDone)
             {
-                Debug.LogWarning("Timer already completed or cancelled.");
+                Debug.LogWarning("TimerBase already completed or cancelled.");
                 return;
             }
 
@@ -130,7 +130,7 @@ namespace Framework.Tools
         {
             if (IsDone)
             {
-                Debug.LogWarning("Timer already completed or cancelled.");
+                Debug.LogWarning("TimerBase already completed or cancelled.");
                 return;
             }
 
@@ -152,7 +152,7 @@ namespace Framework.Tools
         {
             if (IsDone)
             {
-                Debug.LogWarning("Timer already completed or cancelled.");
+                Debug.LogWarning("TimerBase already completed or cancelled.");
                 return;
             }
 

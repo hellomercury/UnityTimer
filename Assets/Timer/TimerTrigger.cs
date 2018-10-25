@@ -1,9 +1,9 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Framework.Tools
+namespace Framework.Timer
 {
-    public sealed class TimerTrigger : Timer
+    public sealed class TimerTrigger : TimerBase
     {
         private readonly Action<float> onUpdate;
 
@@ -33,13 +33,17 @@ namespace Framework.Tools
 
             if (HasMonoOwner && null == MonoOwner)
             {
-                Debug.LogWarning("[Timer]    MonoBehaviour owner has been destroyed.");
+                Debug.LogWarning("[TimerBase]    MonoBehaviour owner has been destroyed.");
                 IsAutoKilled = true;
             }
 
             if (onUpdate != null) onUpdate.Invoke(RemainingTimeFloat);
 
-            if (RemainingTimeFloat <= 0) IsCompleted = true;
+            if (RemainingTimeFloat <= 0)
+            {
+                if(OnCompletedAction != null) OnCompletedAction.Invoke();
+                IsCompleted = true;
+            }
         }
 
         protected override void UpdateTime()

@@ -2,9 +2,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Framework.Tools
+namespace Framework.Timer
 {
-    public sealed class Countdown : Timer
+    public sealed class Countdown : TimerBase
     {
         private readonly Text timeText;
 
@@ -84,7 +84,7 @@ namespace Framework.Tools
 
             if (HasMonoOwner && null == MonoOwner)
             {
-                Debug.LogWarning("[Timer]    MonoBehaviour owner has been destroyed.");
+                Debug.LogWarning("[TimerBase]    MonoBehaviour owner has been destroyed.");
                 IsAutoKilled = true;
             }
 

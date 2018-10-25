@@ -1,4 +1,4 @@
-﻿namespace Framework.Tools
+﻿namespace Framework.Timer
 {
     public static class TimerConfig
     {
